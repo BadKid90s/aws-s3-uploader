@@ -1,0 +1,10 @@
+# Configuration files with sensitive information
+config.toml
+
+# Build artifacts
+dist/
+*.exe
+
+# IDE files
+*.swp
+*.swo
