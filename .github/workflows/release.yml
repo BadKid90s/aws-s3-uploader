@@ -28,15 +28,15 @@ jobs:
         run: |
           mkdir -p dist
           # Build for Linux amd64
-          GOOS=linux GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-linux-amd64 .
+          GOOS=linux GOARCH=amd64 go build -o dist/aws-s3-uploader-linux-amd64 .
           # Build for Linux arm64
-          GOOS=linux GOARCH=arm64 go build -o dist/cloudflare-r2-uploader-linux-arm64 .
+          GOOS=linux GOARCH=arm64 go build -o dist/aws-s3-uploader-linux-arm64 .
           # Build for macOS amd64
-          GOOS=darwin GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-darwin-amd64 .
+          GOOS=darwin GOARCH=amd64 go build -o dist/aws-s3-uploader-darwin-amd64 .
           # Build for macOS arm64
-          GOOS=darwin GOARCH=arm64 go build -o dist/cloudflare-r2-uploader-darwin-arm64 .
+          GOOS=darwin GOARCH=arm64 go build -o dist/aws-s3-uploader-darwin-arm64 .
           # Build for Windows amd64
-          GOOS=windows GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-windows-amd64.exe .
+          GOOS=windows GOARCH=amd64 go build -o dist/aws-s3-uploader-windows-amd64.exe .
 
       - name: Generate SHA256 checksums
         run: |
@@ -56,11 +56,11 @@ jobs:
             ### Verify Integrity
             Use `sha256sum` to verify downloaded files against `checksums.txt`.
           files: |
-            dist/cloudflare-r2-uploader-linux-amd64
-            dist/cloudflare-r2-uploader-linux-arm64
-            dist/cloudflare-r2-uploader-darwin-amd64
-            dist/cloudflare-r2-uploader-darwin-arm64
-            dist/cloudflare-r2-uploader-windows-amd64.exe
+            dist/aws-s3-uploader-linux-amd64
+            dist/aws-s3-uploader-linux-arm64
+            dist/aws-s3-uploader-darwin-amd64
+            dist/aws-s3-uploader-darwin-arm64
+            dist/aws-s3-uploader-windows-amd64.exe
             dist/checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

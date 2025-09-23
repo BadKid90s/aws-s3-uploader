@@ -1,24 +1,25 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 var (
-	endpointURL     = flag.String("endpoint-url", "", "R2 endpoint URL")
-	region          = flag.String("region", "", "R2 region")
-	accessKey       = flag.String("access-key", "", "R2 access key")
-	secretAccessKey = flag.String("secret-access-key", "", "R2 secret access key")
-	bucket          = flag.String("bucket", "", "R2 bucket name")
+	endpointURL     = flag.String("endpoint-url", "https://s3.amazonaws.com", "S3 endpoint URL")
+	region          = flag.String("region", "auto", "S3 region")
+	accessKey       = flag.String("access-key", "", "S3 access key")
+	secretAccessKey = flag.String("secret-access-key", "", "S3 secret access key")
+	bucket          = flag.String("bucket", "", "S3 bucket name")
 	imgURLPrefix    = flag.String("img-url-prefix", "", "Image URL prefix")
 	directory       = flag.String("directory", "", "Directory path in S3 (optional)")
 	configFile      = flag.String("config", "", "Configuration file path")
@@ -113,7 +114,7 @@ func main() {
 		// Validate required flags
 		if *endpointURL == "" || *region == "" || *accessKey == "" ||
 			*secretAccessKey == "" || *bucket == "" {
-			fmt.Fprintf(os.Stderr, "Error: All R2 credentials must be provided either via command line or config file\n")
+			fmt.Fprintf(os.Stderr, "Error: All S3 credentials must be provided either via command line or config file\n")
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -174,21 +175,22 @@ func uploadFile(cfg *DefaultConfig, filePath, timestampedFileName string) error 
 	// Determine the S3 key based on the directory flag
 	s3Key := generateS3Key(timestampedFileName, *directory)
 
-	// Create a new AWS session
-	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(cfg.Region),
-		Endpoint:    aws.String(cfg.EndpointURL),
-		Credentials: credentials.NewStaticCredentials(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
-	})
+	// Create a new AWS config
+	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AccessKeyID, cfg.SecretAccessKey, "")),
+		config.WithRegion(cfg.Region),
+	)
 	if err != nil {
 		return err
 	}
 
-	// Create S3 service client
-	svc := s3.New(sess)
+	// Create S3 service client with custom endpoint
+	svc := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(cfg.EndpointURL)
+	})
 
 	// Upload the file
-	_, err = svc.PutObject(&s3.PutObjectInput{
+	_, err = svc.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(cfg.Bucket),
 		Key:    aws.String(s3Key),
 		Body:   file,
