@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    name: Create Release
+    name: Create Release with Binaries
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -21,7 +21,6 @@ jobs:
       - name: Build binaries
         run: |
           mkdir -p dist
-          # Build for different platforms
           GOOS=linux GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-linux-amd64 .
           GOOS=linux GOARCH=arm64 go build -o dist/cloudflare-r2-uploader-linux-arm64 .
           GOOS=darwin GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-darwin-amd64 .
@@ -29,62 +28,17 @@ jobs:
           GOOS=windows GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-windows-amd64.exe .
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          body: |
+            Auto-generated release for ${{ github.ref_name }}.
+            Includes binaries for Linux, macOS, and Windows (amd64/arm64).
+          files: |
+            dist/cloudflare-r2-uploader-linux-amd64
+            dist/cloudflare-r2-uploader-linux-arm64
+            dist/cloudflare-r2-uploader-darwin-amd64
+            dist/cloudflare-r2-uploader-darwin-arm64
+            dist/cloudflare-r2-uploader-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Linux AMD64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/cloudflare-r2-uploader-linux-amd64
-          asset_name: cloudflare-r2-uploader-linux-amd64
-          asset_content_type: application/octet-stream
-
-      - name: Upload Linux ARM64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/cloudflare-r2-uploader-linux-arm64
-          asset_name: cloudflare-r2-uploader-linux-arm64
-          asset_content_type: application/octet-stream
-
-      - name: Upload macOS AMD64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/cloudflare-r2-uploader-darwin-amd64
-          asset_name: cloudflare-r2-uploader-darwin-amd64
-          asset_content_type: application/octet-stream
-
-      - name: Upload macOS ARM64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/cloudflare-r2-uploader-darwin-arm64
-          asset_name: cloudflare-r2-uploader-darwin-arm64
-          asset_content_type: application/octet-stream
-
-      - name: Upload Windows AMD64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/cloudflare-r2-uploader-windows-amd64.exe
-          asset_name: cloudflare-r2-uploader-windows-amd64.exe
-          asset_content_type: application/octet-stream
