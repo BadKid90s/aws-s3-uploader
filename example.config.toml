@@ -1,0 +1,8 @@
+[default]
+endpoint_url = "https://your-account-id.r2.cloudflarestorage.com"
+region = "auto"
+access_key_id = "your-access-key-id"
+secret_access_key = "your-secret-access-key"
+bucket = "your-bucket-name"
+img_url_prefix = "https://your-image-url-prefix"
+directory = "uploads"
