@@ -1,13 +1,15 @@
 name: Release
 
+# 触发条件：推送 v* 标签 或 手动触发
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch: 
+  workflow_dispatch:
 
+# 👇 关键：授予写入 Release 的权限，避免 "Resource not accessible by integration"
 permissions:
-  contents: write 
+  contents: write
 
 jobs:
   release:
@@ -25,24 +27,40 @@ jobs:
       - name: Build binaries
         run: |
           mkdir -p dist
+          # Build for Linux amd64
           GOOS=linux GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-linux-amd64 .
+          # Build for Linux arm64
           GOOS=linux GOARCH=arm64 go build -o dist/cloudflare-r2-uploader-linux-arm64 .
+          # Build for macOS amd64
           GOOS=darwin GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-darwin-amd64 .
+          # Build for macOS arm64
           GOOS=darwin GOARCH=arm64 go build -o dist/cloudflare-r2-uploader-darwin-arm64 .
+          # Build for Windows amd64
           GOOS=windows GOARCH=amd64 go build -o dist/cloudflare-r2-uploader-windows-amd64.exe .
 
-      - name: Create Release
+      - name: Generate SHA256 checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+          cat checksums.txt  # 输出到日志便于核对
+          cd ..
+
+      - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v1
         with:
-          name: Release ${{ github.ref_name }}
+          name: Release ${{ github.ref_name || 'Manual Run' }}
           body: |
-            Auto-generated release for ${{ github.ref_name }}.
+            Auto-generated release for **${{ github.ref_name || 'manual trigger' }}**.
             Includes binaries for Linux, macOS, and Windows (amd64/arm64).
+
+            ### Verify Integrity
+            Use `sha256sum` to verify downloaded files against `checksums.txt`.
           files: |
             dist/cloudflare-r2-uploader-linux-amd64
             dist/cloudflare-r2-uploader-linux-arm64
             dist/cloudflare-r2-uploader-darwin-amd64
             dist/cloudflare-r2-uploader-darwin-arm64
             dist/cloudflare-r2-uploader-windows-amd64.exe
+            dist/checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
