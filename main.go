@@ -26,6 +26,7 @@ var (
 	imgURLPrefix    = flag.String("img-url-prefix", "", "Image URL prefix")
 	directory       = flag.String("directory", "", "Directory path in S3 (optional)")
 	configFile      = flag.String("config", "", "Configuration file path")
+	renameFile      = flag.Bool("rename-file", false, "Whether to rename file with timestamp") // 新增命令行标志
 )
 
 // generateTimestampedFilename generates a timestamped filename based on the original filename
@@ -113,6 +114,10 @@ func main() {
 		if !explicitlySet["directory"] && cfg.Default.Directory != "" {
 			*directory = cfg.Default.Directory
 		}
+		// Use rename_file from config file only if not explicitly set via command line
+		if !explicitlySet["rename-file"] && cfg.Default.RenameFile {
+			*renameFile = cfg.Default.RenameFile
+		}
 	} else {
 		// Validate required flags
 		if *endpointURL == "" || *region == "" || *accessKey == "" ||
@@ -131,6 +136,7 @@ func main() {
 				Bucket:          *bucket,
 				ImgURLPrefix:    *imgURLPrefix,
 				Directory:       *directory,
+				RenameFile:      *renameFile,
 			},
 		}
 	}
@@ -151,10 +157,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Generate timestamped file name ONCE
+	// Generate timestamped file name if renameFile is true
 	filename := filepath.Base(filePath)
-	timestamp := time.Now().Unix()
-	timestampedFileName := generateTimestampedFilename(filename, timestamp)
+	timestampedFileName := filename // 默认使用原始文件名
+
+	// 如果启用了重命名功能，则使用时间戳重命名
+	if *renameFile {
+		timestamp := time.Now().Unix()
+		timestampedFileName = generateTimestampedFilename(filename, timestamp)
+	}
 
 	// Upload the file
 	err = uploadFile(&cfg.Default, filePath, timestampedFileName)

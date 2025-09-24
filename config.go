@@ -18,6 +18,7 @@ type DefaultConfig struct {
 	Bucket          string `toml:"bucket"`
 	ImgURLPrefix    string `toml:"img_url_prefix"`
 	Directory       string `toml:"directory"`
+	RenameFile      bool   `toml:"rename_file"`
 }
 
 // LoadConfigFromFile loads configuration from a TOML file

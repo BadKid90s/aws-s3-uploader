@@ -1,6 +1,6 @@
 # AWS S3 Uploader
 
-这是一个使用 Go 和 AWS SDK 上传文件到 AWS S3 的命令行工具。上传的文件会被重命名为当前时间戳格式（Unix 时间戳）。
+这是一个使用 Go 和 AWS SDK 上传文件到 AWS S3 的命令行工具。 支持 Typroa 编辑器上传图片到任何支持 S3 协议的Amazon Web Services（AWS）、阿里云、腾讯云、华为云、金山云、DigitalOcean Spaces、Backblaze B2、Wasabi、Cloudflare R2、Oracle Cloud Infrastructure（OCI）Object Storage、IBM Cloud Object Storage等平台。
 
 ## Typora 集成
 
@@ -26,6 +26,7 @@ secret_access_key = "your-secret-access-key"
 bucket = "your-bucket-name"
 img_url_prefix = "https://your-s3-bucket.s3.amazonaws.com"
 directory = "uploads"  # 可选，指定文件上传到 S3 的目录路径
+rename_file = false    # 可选，是否重命名文件为时间戳格式，默认为 false
 ```
 
 程序会在可执行文件所在目录自动查找 `config.toml` 文件。
@@ -91,7 +92,7 @@ go test -v
 ### 通过命令行参数
 
 ```bash
-./aws-s3-uploader --endpoint-url <YOUR_ENDPOINT_URL> --region <YOUR_REGION> --access-key <YOUR_ACCESS_KEY> --secret-access-key <YOUR_SECRET_ACCESS_KEY> --bucket <YOUR_BUCKET_NAME> --img-url-prefix <YOUR_IMG_URL_PREFIX> [--directory <DIRECTORY_PATH>] <FILE_PATH>
+./aws-s3-uploader --endpoint-url <YOUR_ENDPOINT_URL> --region <YOUR_REGION> --access-key <YOUR_ACCESS_KEY> --secret-access-key <YOUR_SECRET_ACCESS_KEY> --bucket <YOUR_BUCKET_NAME> --img-url-prefix <YOUR_IMG_URL_PREFIX> [--directory <DIRECTORY_PATH>] [--rename-file <true|false>] <FILE_PATH>
 ```
 
 ### 通过配置文件
@@ -111,6 +112,7 @@ go test -v
 - `--bucket`: S3 bucket name
 - `--img-url-prefix`: 图片 URL 前缀（可选）
 - `--directory`: 上传到 S3 的目录路径（可选，默认为空，可通过配置文件设置）
+- `--rename-file`: 是否重命名文件为时间戳格式（可选，默认为 false，可通过配置文件设置）
 - `--config`: 配置文件路径（可选，程序会自动在可执行文件目录下查找 config.toml）
 - `<FILE_PATH>`: 要上传的文件路径
 
@@ -123,7 +125,7 @@ go test -v
 
 使用命令行参数：
 ```bash
-./aws-s3-uploader --endpoint-url <YOUR_ENDPOINT_URL> --region <YOUR_REGION> --access-key <YOUR_ACCESS_KEY> --secret-access-key <YOUR_SECRET_ACCESS_KEY> --bucket <YOUR_BUCKET_NAME> --img-url-prefix <YOUR_IMG_URL_PREFIX> [--directory <DIRECTORY_PATH>] <FILE_PATH>
+./aws-s3-uploader --endpoint-url <YOUR_ENDPOINT_URL> --region <YOUR_REGION> --access-key <YOUR_ACCESS_KEY> --secret-access-key <YOUR_SECRET_ACCESS_KEY> --bucket <YOUR_BUCKET_NAME> --img-url-prefix <YOUR_IMG_URL_PREFIX> [--directory <DIRECTORY_PATH>] [--rename-file <true|false>] <FILE_PATH>
 ```
 
 使用配置文件：
@@ -136,14 +138,23 @@ go test -v
 
 # 上传到根目录（通过命令行参数覆盖配置文件）
 ./aws-s3-uploader --directory="" <FILE_PATH>
+
+# 启用文件重命名功能
+./aws-s3-uploader --rename-file=true <FILE_PATH>
 ```
 
 输出结果：
 ```
-# 上传到根目录
+# 上传到根目录，不重命名文件
+https://your-s3-bucket.s3.amazonaws.com/test.png
+
+# 上传到根目录，重命名文件
 https://your-s3-bucket.s3.amazonaws.com/1758620387.png
 
-# 上传到指定目录
+# 上传到指定目录，不重命名文件
+https://your-s3-bucket.s3.amazonaws.com/path/to/file/test.png
+
+# 上传到指定目录，重命名文件
 https://your-s3-bucket.s3.amazonaws.com/path/to/file/1758620390.png
 ```
 
@@ -173,5 +184,3 @@ make cross-compile
 1. 在本地创建并推送一个新的 tag（例如 `git tag v1.0.0 && git push origin v1.0.0`）
 2. GitHub Actions 会自动触发，构建各平台的二进制文件并创建 Release
 3. 在 GitHub 的 Release 页面可以下载各平台的可执行文件
-
-
