@@ -1,6 +1,15 @@
 # AWS S3 Uploader
 
-这是一个使用 Go 和 AWS SDK 上传文件到 AWS S3 的命令行工具。 支持 Typroa 编辑器上传图片到任何支持 S3 协议的Amazon Web Services（AWS）、阿里云、腾讯云、华为云、金山云、DigitalOcean Spaces、Backblaze B2、Wasabi、Cloudflare R2、Oracle Cloud Infrastructure（OCI）Object Storage、IBM Cloud Object Storage等平台。
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/BadKid90s/aws-s3-uploader)](https://github.com/BadKid90s/aws-s3-uploader/releases)
+[![GitHub](https://img.shields.io/github/license/BadKid90s/aws-s3-uploader)](https://github.com/BadKid90s/aws-s3-uploader/blob/main/LICENSE)
+[![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/BadKid90s/aws-s3-uploader)](https://golang.org/)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/BadKid90s/aws-s3-uploader/release.yml)](https://github.com/BadKid90s/aws-s3-uploader/actions)
+
+这是一个使用 Go 和 AWS SDK 上传文件到 AWS S3 的命令行工具。上传的文件可以被重命名为当前时间戳格式（Unix 时间戳）。
+
+## 更新日志
+
+查看 [CHANGELOG.md](CHANGELOG.md) 了解详细版本更新信息。
 
 ## Typora 集成
 
