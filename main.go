@@ -4,6 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
+	"mime"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -164,6 +167,37 @@ func main() {
 	printFileURL(&cfg.Default, filePath, timestampedFileName)
 }
 
+// detectContentType detects the content type of a file based on its extension or content
+func detectContentType(filePath string) string {
+	// First, try to detect content type by file extension
+	contentType := mime.TypeByExtension(filepath.Ext(filePath))
+	if contentType != "" {
+		return contentType
+	}
+
+	// If that fails, try to detect by opening the file and reading the first 512 bytes
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "application/octet-stream" // default binary type
+	}
+	defer file.Close()
+
+	// Read the first 512 bytes (standard buffer size for DetectContentType)
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil && err != io.EOF {
+		return "application/octet-stream"
+	}
+
+	// Use Go's built-in content type detection
+	contentType = http.DetectContentType(buffer)
+	if contentType != "" {
+		return contentType
+	}
+
+	return "application/octet-stream" // default binary type
+}
+
 func uploadFile(cfg *DefaultConfig, filePath, timestampedFileName string) error {
 	// Open the file
 	file, err := os.Open(filePath)
@@ -174,6 +208,9 @@ func uploadFile(cfg *DefaultConfig, filePath, timestampedFileName string) error 
 
 	// Determine the S3 key based on the directory flag
 	s3Key := generateS3Key(timestampedFileName, *directory)
+
+	// Detect content type
+	contentType := detectContentType(filePath)
 
 	// Create a new AWS config
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
@@ -189,11 +226,12 @@ func uploadFile(cfg *DefaultConfig, filePath, timestampedFileName string) error 
 		o.BaseEndpoint = aws.String(cfg.EndpointURL)
 	})
 
-	// Upload the file
+	// Upload the file with content type
 	_, err = svc.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(cfg.Bucket),
-		Key:    aws.String(s3Key),
-		Body:   file,
+		Bucket:      aws.String(cfg.Bucket),
+		Key:         aws.String(s3Key),
+		Body:        file,
+		ContentType: aws.String(contentType),
 	})
 
 	return err
